@@ -46,11 +46,13 @@ async def who_at_me(bot: HoshinoBot, ev: CQEvent):
     forward_messages = []
 
     for index, msg in enumerate(new_ated_user_messages):
+        converted_time = convert_stamp_time_to_date(msg['time'])
         if get_now_time() - msg["time"] >= reminder_expire_time:
             del new_ated_user_messages[index]
+            continue
         else:
-            if show_time:
-                msg['data']['content'] = f"[{convert_stamp_time_to_date(msg['time'])}]\n{msg['data']['content']}"
+            if show_time and not str(msg['data']['content']).startswith(f"[{converted_time}]"):
+                msg['data']['content'] = f"[{converted_time}]\n{msg['data']['content']}"
             forward_messages.append(msg)
 
     if not forward_messages:
@@ -60,7 +62,6 @@ async def who_at_me(bot: HoshinoBot, ev: CQEvent):
     forward_messages.reverse() if reversed_range else None
     forward_messages.insert(0, node_custom(user_id=ev.self_id, name=nickname, content=TIPS,time=get_now_time())) if tips_header else None
 
-    print(forward_messages)
     await bot.send_group_forward_msg(group_id=gid, messages=forward_messages)
 
 
